@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 
 import Form from '../Form/Form';
 import Filter from '../Filter/Filter';
@@ -7,42 +7,37 @@ import Container from '../Styled/Container.styled';
 import Title from '../Styled/Title.styled';
 import MiniTitle from '../Styled/MiniTitle.styled';
 import { nanoid } from 'nanoid';
-
-class Phonebook extends Component {
-  state = {
-    contacts: [],
-    filter: '',
-    name: '',
-    number: '',
-    showDeleted: false,
-  };
-
-  // Викликається відразу після монтування компонента в DOM
-  componentDidMount() {
-    const contact = localStorage.getItem('contact');
-    const contactParsed = JSON.parse(contact);
-
-    if (contactParsed) {
-      this.setState({ contacts: contactParsed });
+//=============================================================>
+export function PhoneBook() {
+  const [contacts, setContacts] = useState([]);
+  const [filter, setFilter] = useState('');
+  const [name, setName] = useState('');
+  const [number, setNumber] = useState('');
+  const [showDeleted] = useState(false);
+  //=============================================================>
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
+  //=============================================================>
+  useEffect(() => {
+    const contactsStorage = localStorage.getItem('contacts');
+    if (contactsStorage) {
+      setContacts(JSON.parse(contactsStorage));
     }
-  }
-
-  // Викликається відразу після оновлення компонента в DOM
-  // Не викликається при початковому рендері компонента
-  componentDidUpdate(_, prevState) {
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem('contact', JSON.stringify(this.state.contacts));
-    }
-  }
-
-  handleChange = e => {
+  }, []);
+  //=============================================================>
+  function handleChange(e) {
     const { name, value } = e.target;
-    this.setState({ [name]: value });
-  };
-
-  handleSubmit = e => {
+    if (name === 'name') {
+      setName(value);
+    } else if (name === 'number') {
+      setNumber(value);
+    }
+  }
+  //=============================================================>
+  const handleSubmit = e => {
     e.preventDefault();
-    const { name, contacts } = this.state;
+
     if (
       contacts.some(
         contact => contact.name.toLowerCase() === name.toLowerCase()
@@ -53,54 +48,42 @@ class Phonebook extends Component {
     }
     const newContact = {
       id: nanoid(),
-      name: this.state.name,
-      number: this.state.number,
+      name: name,
+      number: number,
     };
 
-    this.setState(prevState => ({
-      contacts: [...prevState.contacts, newContact],
-      name: '',
-      number: '',
-    }));
+    setContacts(prevState => [...prevState, newContact]);
+    setName('');
+    setNumber('');
   };
-
-  deleteContact = id => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== id),
-    }));
+  //=============================================================>
+  const deleteContact = id => {
+    setContacts(prevState => prevState.filter(contact => contact.id !== id));
   };
-
-  filter = value => {
-    this.setState({ filter: value });
+  //=============================================================>
+  const filterValue = value => {
+    setFilter(value);
   };
+  //=============================================================>
+  const filteredContacts = showDeleted
+    ? contacts
+    : contacts.filter(contact =>
+        contact.name.toLowerCase().includes(filter.toLowerCase())
+      );
+  //=============================================================>
+  return (
+    <Container>
+      <Title>Phonebook</Title>
+      <Form
+        name={name}
+        number={number}
+        onChange={handleChange}
+        onSubmit={handleSubmit}
+      />
 
-  render() {
-    const { contacts, filter, showDeleted, name, number } = this.state;
-    const filteredContacts = showDeleted
-      ? contacts
-      : contacts.filter(contact =>
-          contact.name.toLowerCase().includes(filter.toLowerCase())
-        );
-
-    return (
-      <Container>
-        <Title>Phonebook</Title>
-        <Form
-          name={name}
-          number={number}
-          onChange={this.handleChange}
-          onSubmit={this.handleSubmit}
-        />
-
-        <MiniTitle>Contacts</MiniTitle>
-        <Filter value={filter} onChange={this.filter} />
-        <ContactList
-          contacts={filteredContacts}
-          deleteContact={this.deleteContact}
-        />
-      </Container>
-    );
-  }
+      <MiniTitle>Contacts</MiniTitle>
+      <Filter value={filter} onChange={filterValue} />
+      <ContactList contacts={filteredContacts} deleteContact={deleteContact} />
+    </Container>
+  );
 }
-
-export default Phonebook;
