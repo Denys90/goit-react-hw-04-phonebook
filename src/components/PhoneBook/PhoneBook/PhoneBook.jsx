@@ -9,7 +9,7 @@ import { nanoid } from 'nanoid';
 //=============================================================>
 export function PhoneBook() {
   const [contacts, setContacts] = useState(() => {
-    return (JSON.parse(localStorage.getItem('contacts')));
+    return (JSON.parse(localStorage.getItem('contacts'))||[]);
   });
   const [filter, setFilter] = useState('');
   const [name, setName] = useState('');
