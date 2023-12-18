@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-
 import Form from '../Form/Form';
 import Filter from '../Filter/Filter';
 import ContactList from '../ContactList/ContsctList';
@@ -9,7 +8,9 @@ import MiniTitle from '../Styled/MiniTitle.styled';
 import { nanoid } from 'nanoid';
 //=============================================================>
 export function PhoneBook() {
-  const [contacts, setContacts] = useState([]);
+  const [contacts, setContacts] = useState(() => {
+    return JSON.parse(localStorage.getItem('contacts'));
+  });
   const [filter, setFilter] = useState('');
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
@@ -18,13 +19,6 @@ export function PhoneBook() {
   useEffect(() => {
     localStorage.setItem('contacts', JSON.stringify(contacts));
   }, [contacts]);
-  //=============================================================>
-  useEffect(() => {
-    const contactsStorage = localStorage.getItem('contacts');
-    if (contactsStorage) {
-      setContacts(JSON.parse(contactsStorage));
-    }
-  }, []);
   //=============================================================>
   function handleChange(e) {
     const { name, value } = e.target;
